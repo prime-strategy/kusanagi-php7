@@ -1,17 +1,26 @@
 #//----------------------------------------------------------------------------
 #// PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
 #//----------------------------------------------------------------------------
-FROM php:7.0.6-fpm-alpine
+FROM php:7.0.10-fpm-alpine
 MAINTAINER kusanagi@prime-strategy.co.jp
 
+# Environment variable
+ENV MYSQL_VERSION 10.1.14-r3
+ENV APCU_VERSION 5.1.5
+ENV APCU_BC_VERSION 1.0.3
+
 RUN apk update \
-	&& apk add $PHPIZE_DEPS mysql \
-	&& docker-php-ext-install mysqli opcache \
-	&& pecl install apcu-5.1.3 \
+	&& apk add --no-cache --virtual .build-php \
+		$PHPIZE_DEPS \
+		mysql=$MYSQL_VERSION \
+	&& docker-php-ext-install \
+		mysqli \
+		opcache \
+	&& pecl install apcu-$APCU_VERSION \
 	&& docker-php-ext-enable apcu \
-	&& pecl install apcu_bc-1.0.3 \
+	&& pecl install apcu_bc-$APCU_BC_VERSION \
 	&& docker-php-ext-enable apc \
-	&& apk del $PHPIZE_DEPS
+	&& apk del .build-php
 
 COPY files/*.ini /usr/local/etc/php/conf.d/
 RUN mkdir -p /etc/php.d/
