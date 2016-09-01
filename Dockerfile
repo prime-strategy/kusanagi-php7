@@ -5,9 +5,9 @@ FROM php:7.0.10-fpm-alpine
 MAINTAINER kusanagi@prime-strategy.co.jp
 
 # Environment variable
-ARG MYSQL_VERSION 10.1.14-r3
-ARG APCU_VERSION 5.1.5
-ARG APCU_BC_VERSION 1.0.3
+ARG MYSQL_VERSION=10.1.14-r3
+ARG APCU_VERSION=5.1.5
+ARG APCU_BC_VERSION=1.0.3
 
 RUN apk update \
 	&& apk add --no-cache --virtual .build-php \
