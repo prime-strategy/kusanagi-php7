@@ -1,7 +1,7 @@
 #//----------------------------------------------------------------------------
-// PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
+#// PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
 #//----------------------------------------------------------------------------
-FROM php:7.0.10-fpm-alpine
+FROM php:7.0.11-fpm-alpine
 MAINTAINER kusanagi@prime-strategy.co.jp
 
 # Environment variable
