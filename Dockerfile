@@ -11,6 +11,12 @@ ARG APCU_BC_VERSION=1.0.3
 ARG PHP_VERSION=7.0.16-r0
 
 RUN apk update \
+	&& apk add --no-cache \
+		bzip2 \
+		gd \
+		gettext \
+		libmcrypt \
+		libxslt \
 	&& apk add --no-cache --virtual .build-php \
 		$PHPIZE_DEPS \
 		mariadb=$MYSQL_VERSION \
