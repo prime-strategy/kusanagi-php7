@@ -12,7 +12,7 @@ ARG PHP_VERSION=7.0.16-r0
 
 RUN apk update \
 	&& apk add --no-cache \
-		bzip2 \
+		libbz2 \
 		gd \
 		gettext \
 		libmcrypt \
