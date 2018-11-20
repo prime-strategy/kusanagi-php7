@@ -5,7 +5,7 @@ FROM php:7.0.16-fpm-alpine
 MAINTAINER kusanagi@prime-strategy.co.jp
 
 # Environment variable
-ARG MYSQL_VERSION=10.1.26-r0
+ARG MYSQL_VERSION=10.1.21-r0
 ARG APCU_VERSION=5.1.8
 ARG APCU_BC_VERSION=1.0.3
 ARG PHP_VERSION=7.0.16-r0
@@ -39,7 +39,6 @@ RUN apk update \
 	&& docker-php-ext-enable apcu \
 	&& pecl install apcu_bc-$APCU_BC_VERSION \
 	&& docker-php-ext-enable apc \
-	&& docker-php-ext-configure gd --with-jpeg-dir=/usr \
 	&& docker-php-ext-install \
 		mysqli \
 		opcache \
