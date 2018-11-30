@@ -11,14 +11,43 @@ ARG APCU_BC_VERSION=1.0.4
 
 		#libtool autoconf automake \
 RUN apk update \
+	&& apk add --no-cache \
+		libbz2 \
+		gd \
+		gettext \
+		libmcrypt \
+		libxslt \
 	&& apk add --no-cache --virtual .build-php \
 		$PHPIZE_DEPS \
-		mysql=$MYSQL_VERSION \
+		mariadb=$MYSQL_VERSION \
+		mariadb-dev=$MYSQL_VERSION \
+		gd-dev \
+		jpeg-dev \
+		libpng-dev \
+		libwebp-dev \
+		libxpm-dev \
+		zlib-dev \
+		freetype-dev \
+		bzip2-dev \
+		libexif-dev \
+		xmlrpc-c-dev \
 		pcre-dev \
+		gettext-dev \
+		libmcrypt-dev \
+		libxslt-dev \
+		pcre-dev \
+	&& pecl channel-update pecl.php.net \
+	&& pecl install mcrypt-1.0.1 \
+	&& docker-php-ext-enable mcrypt \
+	&& docker-php-ext-configure gd --with-jpeg-dir=/usr \
 	&& docker-php-ext-install \
 		mysqli \
 		opcache \
-	&& pecl channel-update pecl.php.net \
+		gd \
+		bz2 zip \
+		pdo pdo_mysql \
+		bcmath exif gettext pcntl \
+		soap sockets sysvsem sysvshm xmlrpc xsl \
 	&& pecl install apcu-$APCU_VERSION \
 	&& pecl install apcu_bc-$APCU_BC_VERSION \
 	&& docker-php-ext-enable apcu apc \
