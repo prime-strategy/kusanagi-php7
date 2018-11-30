@@ -1,16 +1,6 @@
 #//----------------------------------------------------------------------------
 #// PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
 #//----------------------------------------------------------------------------
-<<<<<<< HEAD
-FROM php:7.0.16-fpm-alpine
-MAINTAINER kusanagi@prime-strategy.co.jp
-
-# Environment variable
-ARG MYSQL_VERSION=10.1.26-r0
-ARG APCU_VERSION=5.1.8
-ARG APCU_BC_VERSION=1.0.3
-ARG PHP_VERSION=7.0.16-r0
-=======
 FROM php:7.2.12-fpm-alpine
 MAINTAINER kusanagi@prime-strategy.co.jp
 
@@ -18,7 +8,6 @@ MAINTAINER kusanagi@prime-strategy.co.jp
 ARG MYSQL_VERSION=10.2.15-r0
 ARG APCU_VERSION=5.1.13
 ARG APCU_BC_VERSION=1.0.4
->>>>>>> release/7.2.12
 
 		#libtool autoconf automake \
 RUN apk update \
@@ -30,7 +19,6 @@ RUN apk update \
 		libxslt \
 	&& apk add --no-cache --virtual .build-php \
 		$PHPIZE_DEPS \
-<<<<<<< HEAD
 		mariadb=$MYSQL_VERSION \
 		mariadb-dev=$MYSQL_VERSION \
 		gd-dev \
@@ -47,30 +35,22 @@ RUN apk update \
 		gettext-dev \
 		libmcrypt-dev \
 		libxslt-dev \
-=======
-		mysql=$MYSQL_VERSION \
 		pcre-dev \
-	&& docker-php-ext-install \
-		mysqli \
-		opcache \
 	&& pecl channel-update pecl.php.net \
->>>>>>> release/7.2.12
-	&& pecl install apcu-$APCU_VERSION \
-	&& pecl install apcu_bc-$APCU_BC_VERSION \
-<<<<<<< HEAD
-	&& docker-php-ext-enable apc \
+	&& pecl install mcrypt-1.0.1 \
+	&& docker-php-ext-enable mcrypt \
 	&& docker-php-ext-configure gd --with-jpeg-dir=/usr \
 	&& docker-php-ext-install \
 		mysqli \
 		opcache \
 		gd \
-		bz2 \
+		bz2 zip \
 		pdo pdo_mysql \
-		bcmath exif gettext mcrypt pcntl \
-		soap sockets sysvsem sysvshm xmlrpc xsl zip \
-=======
+		bcmath exif gettext pcntl \
+		soap sockets sysvsem sysvshm xmlrpc xsl \
+	&& pecl install apcu-$APCU_VERSION \
+	&& pecl install apcu_bc-$APCU_BC_VERSION \
 	&& docker-php-ext-enable apcu apc \
->>>>>>> release/7.2.12
 	&& apk del .build-php \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-apc.ini \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
