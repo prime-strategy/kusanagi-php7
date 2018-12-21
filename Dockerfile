@@ -9,19 +9,17 @@ ARG MYSQL_VERSION=10.2.15-r0
 ARG APCU_VERSION=5.1.13
 ARG APCU_BC_VERSION=1.0.4
 
-		#libtool autoconf automake \
+# add user
+RUN : \
+	&& apk update && \
+	apk upgrade && \
+	apk add --virtual .user shadow \
+	&& groupadd -g 1001 www \
+	&& useradd -d /var/lib/www -s /bin/nologin -g www -M -u 1001 httpd \
+	&& apk del --purge .user \
+	&& :
+
 RUN apk update \
-	&& apk add --no-cache \
-		libbz2 \
-		gd \
-		zip \
-		libzip \
-		gettext \
-		libxslt \
-		c-client \
-		libxpm \
-		libldap \
-		libpq \
 	&& apk add --update --no-cache --virtual .build-php \
 		$PHPIZE_DEPS \
 		mariadb=$MYSQL_VERSION \
@@ -45,6 +43,7 @@ RUN apk update \
 		pcre-dev \
 		openldap-dev \
 		imap-dev \
+		icu-dev \
 	&& pecl channel-update pecl.php.net \
 	&& docker-php-ext-configure gd --with-jpeg-dir=/usr/include \
 		--with-xpm-dir=/usr/include --with-webp-dir=/usr/include \
@@ -54,6 +53,7 @@ RUN apk update \
 		mysqli pgsql \
 		opcache \
 		gd \
+		intl \
 		calendar \
 		imap ldap \
 		bz2 zip \
@@ -63,11 +63,51 @@ RUN apk update \
 	&& pecl install apcu-$APCU_VERSION \
 	&& pecl install apcu_bc-$APCU_BC_VERSION \
 	&& docker-php-ext-enable apcu apc \
+	&& strip /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so \
+	&& runDeps="$( \
+		scanelf --needed --nobanner --format '%n#p' /usr/local/bin/php /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so \
+			| tr ',' '\n' \
+			| sort -u \
+			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
+	)" \
+	&& apk add --no-cache --virtual .php7-rundeps $runDeps \
 	&& apk del .build-php \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-apc.ini \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-	&& mkdir -p /etc/php.d/
+	&& mkdir -p /etc/php7.d/conf.d /etc/php7-fpm.d \
+	&& cp /usr/local/etc/php/conf.d/* /etc/php7.d/conf.d/ \
+	&& cp /usr/local/etc/php-fpm.d/* /etc/php7-fpm.d/ \
+	&& :
 
 COPY files/*.ini /usr/local/etc/php/conf.d/
-COPY files/opcache*.blacklist /etc/php.d/
+COPY files/opcache*.blacklist /etc/php7.d/
+COPY files/www.conf /etc/php7-fpm.d/
+COPY files/php7-fpm.conf /etc/
+
+#sed -i -E "s;^extension_dir\s*=.*$;extension_dir = \"${EXTENSIONDIR}\";" %{SOURCE3}
+#cp %{SOURCE3} $RPM_BUILD_ROOT/etc/php7.d/php.ini
+#
+#COPY %{SOURCE5} $RPM_BUILD_ROOT/etc/php7-fpm.d/php7-fpm.conf.kusanagi
+#COPY %{SOURCE6} $RPM_BUILD_ROOT/etc/php7-fpm.d/www.conf.kusanagi
+#
+#COPY $RPM_BUILD_ROOT/etc/php7-fpm.d/www.conf.kusanagi $RPM_BUILD_ROOT/etc/php7-fpm.d/www.conf
+#COPY $RPM_BUILD_ROOT/etc/php7-fpm.d/php7-fpm.conf.kusanagi $RPM_BUILD_ROOT/etc/php7-fpm.conf
+#echo "d /run/php7-fpm 0755 root root" > $RPM_BUILD_ROOT/etc/tmpfiles.d/php7-fpm.conf
+
+
+
+
+ARG MICROSCANER_TOKEN
+RUN if [ x${MICROSCANER_TOKEN} != x ] ; then \
+	apk add --no-cache --virtual .ca ca-certificates \
+	&& update-ca-certificates\
+	&& wget --no-check-certificate https://get.aquasec.com/microscanner \
+	&& chmod +x microscanner \
+	&& ./microscanner ${MICROSCANER_TOKEN} || exit 1\
+	&& rm ./microscanner \
+	&& apk del --purge --virtual .ca ;\
+    fi
+
+USER httpd
+#CMD ["/usr/local/bin/php" "--nodaemonize" "--fpm-config" "/etc/php7-fpm.conf"]
