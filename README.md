@@ -2,39 +2,39 @@
 PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
 
 ## Versions(tags)
-
 - latest
-<<<<<<< HEAD
-- 7.0.16
+- 7.3.0
 
 ## Image Content
-- php:7.0.16-fpm-alpine
-- mysql 10.1.21-r0
-- apcu-5.1.8
-- apcu_bc-1.0.3
-- mysqli 
-=======
-- 7.2.12
+- 7.3.0
 
 ## Image Content
-- php:7.2.12-fpm-alpine
-- apcu-5.1.13
+- php:7.3.0-fpm-alpine
+- apcu-5.1.14
 - apcu_bc-1.0.4
-- mysqli
->>>>>>> release/7.2.12
-- opcache
-- gd 
-- bz2
-- pdo pdo_mysql
 - bcmath
+- bz2
+- calendar
 - exif
+- gd
 - gettext
-- mcrypt
+- imap
+- ldap
+- mysqli
+- mysqlnd
 - pcntl
+- pcre
+- PDO
+- pdo_mysql
+- pdo_pgsql
+- pdo_sqlite
+- pgsql
 - soap
 - sockets
 - sysvsem
 - sysvshm
 - xmlrpc
 - xsl
+- Zend OPcache
 - zip
+- zlib

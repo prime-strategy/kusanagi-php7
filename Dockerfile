@@ -1,7 +1,7 @@
 #//----------------------------------------------------------------------------
 #// PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
 #//----------------------------------------------------------------------------
-FROM php:7.2.12-fpm-alpine
+FROM php:7.3.0-fpm-alpine
 MAINTAINER kusanagi@prime-strategy.co.jp
 
 # Environment variable
@@ -14,38 +14,50 @@ RUN apk update \
 	&& apk add --no-cache \
 		libbz2 \
 		gd \
+		zip \
+		libzip \
 		gettext \
-		libmcrypt \
 		libxslt \
-	&& apk add --no-cache --virtual .build-php \
+		c-client \
+		libxpm \
+		libldap \
+		libpq \
+	&& apk add --update --no-cache --virtual .build-php \
 		$PHPIZE_DEPS \
 		mariadb=$MYSQL_VERSION \
 		mariadb-dev=$MYSQL_VERSION \
+		postgresql \
+		postgresql-dev \
 		gd-dev \
 		jpeg-dev \
 		libpng-dev \
 		libwebp-dev \
 		libxpm-dev \
 		zlib-dev \
+		libzip-dev \
 		freetype-dev \
 		bzip2-dev \
 		libexif-dev \
 		xmlrpc-c-dev \
 		pcre-dev \
 		gettext-dev \
-		libmcrypt-dev \
 		libxslt-dev \
 		pcre-dev \
+		openldap-dev \
+		imap-dev \
 	&& pecl channel-update pecl.php.net \
-	&& pecl install mcrypt-1.0.1 \
-	&& docker-php-ext-enable mcrypt \
-	&& docker-php-ext-configure gd --with-jpeg-dir=/usr \
+	&& docker-php-ext-configure gd --with-jpeg-dir=/usr/include \
+		--with-xpm-dir=/usr/include --with-webp-dir=/usr/include \
+		--with-png-dir=/usr/include --with-freetype-dir=/usr/include/ \
+		--enable-gd-jis-conv \
 	&& docker-php-ext-install \
-		mysqli \
+		mysqli pgsql \
 		opcache \
 		gd \
+		calendar \
+		imap ldap \
 		bz2 zip \
-		pdo pdo_mysql \
+		pdo pdo_mysql pdo_pgsql \
 		bcmath exif gettext pcntl \
 		soap sockets sysvsem sysvshm xmlrpc xsl \
 	&& pecl install apcu-$APCU_VERSION \
