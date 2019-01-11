@@ -1,7 +1,7 @@
 #//----------------------------------------------------------------------------
 #// PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
 #//----------------------------------------------------------------------------
-FROM php:7.3.0-fpm-alpine3.8
+FROM php:7.3.1-fpm-alpine3.8
 MAINTAINER kusanagi@prime-strategy.co.jp
 
 # Environment variable
@@ -11,9 +11,9 @@ ARG MOZJPEG_VERSION=3.3.1
 
 # add user
 RUN : \
-	&& apk update && \
-	apk upgrade && \
-	apk add --virtual .user shadow \
+	&& apk update \
+	&& apk upgrade \
+	&& apk add --virtual .user shadow \
 	&& groupadd -g 1001 www \
 	&& useradd -d /var/lib/www -s /bin/nologin -g www -M -u 1001 httpd \
 	&& apk del --purge .user \
@@ -22,6 +22,7 @@ RUN : \
 RUN apk update \
 	&& apk add --update --no-cache --virtual .build-php \
 		$PHPIZE_DEPS \
+		build-base \
 		automake \
 		gettext \
 		libtool \
@@ -48,7 +49,11 @@ RUN apk update \
 		imap-dev \
 		icu-dev \
 		curl \
+		imagemagick-dev \
 	&& cd /tmp \
+\
+# mozjpeg
+\
 	&& curl -LO https://github.com/mozilla/mozjpeg/archive/v${MOZJPEG_VERSION}.tar.gz#//mozjpeg-${MOZJPEG_VERSION}.tar.gz \
 	&& tar xf mozjpeg-${MOZJPEG_VERSION}.tar.gz \
 	&& cd mozjpeg-${MOZJPEG_VERSION} \
@@ -68,25 +73,41 @@ RUN apk update \
 	&& cp /usr/lib/libturbojpeg.so.0.1.0 \
 		/usr/lib/libjpeg.so.8.1.2 \
 		/tmp \
+\
+# PHP7.3
+\
 	&& pecl channel-update pecl.php.net \
 	&& docker-php-ext-configure gd --with-jpeg-dir=/usr/include \
 		--with-xpm-dir=/usr/include --with-webp-dir=/usr/include \
 		--with-png-dir=/usr/include --with-freetype-dir=/usr/include/ \
 		--enable-gd-jis-conv \
 	&& docker-php-ext-install \
-		mysqli pgsql \
+		mysqli \
+		pgsql \
 		opcache \
 		gd \
 		intl \
 		calendar \
-		imap ldap \
-		bz2 zip \
-		pdo pdo_mysql pdo_pgsql \
-		bcmath exif gettext pcntl \
-		soap sockets sysvsem sysvshm xmlrpc xsl \
+		imap \
+		ldap \
+		bz2 \
+		zip \
+		pdo \
+		pdo_mysql \
+		pdo_pgsql \
+		bcmath \
+		exif \
+		gettext \
+		pcntl \
+		soap \
+		sockets \
+		sysvsem \
+		sysvshm \
+		xmlrpc xsl \
+	&& pecl install imagick \
 	&& pecl install apcu-$APCU_VERSION \
 	&& pecl install apcu_bc-$APCU_BC_VERSION \
-	&& docker-php-ext-enable apcu apc \
+	&& docker-php-ext-enable imagick apcu apc \
 	&& strip /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so \
 	&& runDeps="$( \
 		scanelf --needed --nobanner --format '%n#p' /usr/local/bin/php /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so \
@@ -102,31 +123,20 @@ RUN apk update \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
 	&& rm -rf /tmp/mozjpeg* /usr/include /usr/lib/pkgconfig /usr/lib/*a /usr/share/doc /usr/share/man \
-\
-#	&& apk add pngquant optipng imagemagick\
-\
 	&& apk add pngquant optipng jpegoptim \
 	&& mv /tmp/libturbojpeg.so.0.1.0 /tmp/libjpeg.so.8.1.2 /usr/lib \
 	&& mkdir -p /etc/php7.d/conf.d /etc/php7-fpm.d \
 	&& cp /usr/local/etc/php/conf.d/* /etc/php7.d/conf.d/ \
 	&& cp /usr/local/etc/php-fpm.d/* /etc/php7-fpm.d/ \
+	&& mkdir -p /var/log/php7-fpm \
+	&& ln -sf /dev/stdout /var/log/php7-fpm/www-error.log \
+	&& ln -sf /dev/stderr /var/log/php7-fpm/www-slow.log \
 	&& :
 
 COPY files/*.ini /usr/local/etc/php/conf.d/
 COPY files/opcache*.blacklist /etc/php7.d/
 COPY files/www.conf /etc/php7-fpm.d/
 COPY files/php7-fpm.conf /etc/
-
-#sed -i -E "s;^extension_dir\s*=.*$;extension_dir = \"${EXTENSIONDIR}\";" %{SOURCE3}
-#cp %{SOURCE3} $RPM_BUILD_ROOT/etc/php7.d/php.ini
-#
-#COPY %{SOURCE5} $RPM_BUILD_ROOT/etc/php7-fpm.d/php7-fpm.conf.kusanagi
-#COPY %{SOURCE6} $RPM_BUILD_ROOT/etc/php7-fpm.d/www.conf.kusanagi
-#
-#COPY $RPM_BUILD_ROOT/etc/php7-fpm.d/www.conf.kusanagi $RPM_BUILD_ROOT/etc/php7-fpm.d/www.conf
-#COPY $RPM_BUILD_ROOT/etc/php7-fpm.d/php7-fpm.conf.kusanagi $RPM_BUILD_ROOT/etc/php7-fpm.conf
-#echo "d /run/php7-fpm 0755 root root" > $RPM_BUILD_ROOT/etc/tmpfiles.d/php7-fpm.conf
-
 
 ARG MICROSCANER_TOKEN
 RUN if [ x${MICROSCANER_TOKEN} != x ] ; then \
@@ -140,4 +150,4 @@ RUN if [ x${MICROSCANER_TOKEN} != x ] ; then \
     fi
 
 USER httpd
-#CMD ["/usr/local/bin/php" "--nodaemonize" "--fpm-config" "/etc/php7-fpm.conf"]
+CMD ["/usr/local/sbin/php-fpm", "--nodaemonize", "--fpm-config", "/etc/php7-fpm.conf"]
