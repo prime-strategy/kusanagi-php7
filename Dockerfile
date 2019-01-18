@@ -49,6 +49,7 @@ RUN apk update \
 		imap-dev \
 		icu-dev \
 		curl \
+		imagemagick \
 		imagemagick-dev \
 	&& cd /tmp \
 \
@@ -73,6 +74,7 @@ RUN apk update \
 	&& cp /usr/lib/libturbojpeg.so.0.1.0 \
 		/usr/lib/libjpeg.so.8.1.2 \
 		/tmp \
+	&& cp /usr/bin/mogrify /tmp \
 \
 # PHP7.3
 \
@@ -110,7 +112,7 @@ RUN apk update \
 	&& docker-php-ext-enable imagick apcu apc \
 	&& strip /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so \
 	&& runDeps="$( \
-		scanelf --needed --nobanner --format '%n#p' /usr/local/bin/php /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so \
+		scanelf --needed --nobanner --format '%n#p' /usr/local/bin/php /tmp/mogriify /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so \
 			| tr ',' '\n' \
 			| sort -u \
 			| grep -v jpeg \
@@ -119,10 +121,11 @@ RUN apk update \
 	&& apk add --no-cache --virtual .php7-rundeps $runDeps \
 	&& apk del .build-php \
 	&& cd / \
+	&& mv /tmp/mogrify /usr/bin \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-apc.ini \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-	&& rm -rf /tmp/mozjpeg* /usr/include /usr/lib/pkgconfig /usr/lib/*a /usr/share/doc /usr/share/man \
+	&& rm -rf /tmp/mozjpeg* /tmp/pear /usr/include /usr/lib/pkgconfig /usr/lib/*a /usr/share/doc /usr/share/man \
 	&& apk add pngquant optipng jpegoptim \
 	&& mv /tmp/libturbojpeg.so.0.1.0 /tmp/libjpeg.so.8.1.2 /usr/lib \
 	&& mkdir -p /etc/php7.d/conf.d /etc/php7-fpm.d \
@@ -133,10 +136,17 @@ RUN apk update \
 	&& ln -sf /dev/stderr /var/log/php7-fpm/www-slow.log \
 	&& :
 
+RUN	mkdir -p /var/lib/php7/session /var/lib/php7/wsdlcache  \
+	&& chown httpd:www /var/lib/php7/session /var/lib/php7/wsdlcache \
+	&& echo mysqli.default_socket=/var/run/mysqld/mysqld.sock >> /usr/local/etc/php/conf.d/docker-php-ext-mysqli.ini \
+	&& echo pdo_mysql.default_socket = /var/run/mysqld/mysqld.sock >> /usr/local/etc/php/conf.d/docker-php-ext-pdo_mysql.ini \
+	&& :
+
 COPY files/*.ini /usr/local/etc/php/conf.d/
-COPY files/opcache*.blacklist /etc/php7.d/
-COPY files/www.conf /etc/php7-fpm.d/
-COPY files/php7-fpm.conf /etc/
+COPY files/opcache*.blacklist /usr/local/etc/php.d/
+COPY files/www.conf /usr/local/etc/php-fpm.d/
+COPY files/php7-fpm.conf /usr/local/etc/php-fpm.conf
+COPY files/php.ini-production /usr/local/etc/php.conf
 
 ARG MICROSCANER_TOKEN
 RUN if [ x${MICROSCANER_TOKEN} != x ] ; then \
@@ -150,4 +160,4 @@ RUN if [ x${MICROSCANER_TOKEN} != x ] ; then \
     fi
 
 USER httpd
-CMD ["/usr/local/sbin/php-fpm", "--nodaemonize", "--fpm-config", "/etc/php7-fpm.conf"]
+CMD ["/usr/local/sbin/php-fpm", "--nodaemonize", "--fpm-config", "/usr/local/etc/php-fpm.conf"]
