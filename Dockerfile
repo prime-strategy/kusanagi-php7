@@ -16,6 +16,9 @@ RUN : \
 	&& apk add --virtual .user shadow \
 	&& groupadd -g 1001 www \
 	&& useradd -d /var/lib/www -s /bin/nologin -g www -M -u 1001 httpd \
+        && groupadd -g 1000 kusanagi \
+        && useradd -d /home/kusanagi -s /bin/nologin -g kusanagi -G www -u 1000 -m kusanagi \
+        && chmod 755 /home/kusanagi \
 	&& apk del --purge .user \
 	&& :
 
@@ -48,6 +51,7 @@ RUN apk update \
 		openldap-dev \
 		imap-dev \
 		icu-dev \
+		libssh2-dev \
 		curl \
 		imagemagick \
 		imagemagick-dev \
