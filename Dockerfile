@@ -51,7 +51,6 @@ RUN apk update \
 		openldap-dev \
 		imap-dev \
 		icu-dev \
-		libssh2-dev \
 		curl \
 		imagemagick \
 		imagemagick-dev \
@@ -109,21 +108,26 @@ RUN apk update \
 		sockets \
 		sysvsem \
 		sysvshm \
-		xmlrpc xsl \
+		xmlrpc \
+		xsl \
 	&& pecl install imagick \
 	&& pecl install apcu-$APCU_VERSION \
 	&& pecl install apcu_bc-$APCU_BC_VERSION \
 	&& docker-php-ext-enable imagick apcu apc \
 	&& strip /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so \
+	&& apk add --no-cache --virtual .gettext gettext \
+	&& mv /usr/bin/envsubst /tmp/ \
 	&& runDeps="$( \
-		scanelf --needed --nobanner --format '%n#p' /usr/local/bin/php /tmp/mogriify /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so \
+		scanelf --needed --nobanner --format '%n#p' /usr/local/bin/php /tmp/mogriify /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so /tmp/envsubst \
 			| tr ',' '\n' \
 			| sort -u \
 			| grep -v jpeg \
 			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
 	)" \
+	&& apk del --virtual .gettext \
 	&& apk add --no-cache --virtual .php7-rundeps $runDeps \
 	&& apk del .build-php \
+	&& mv /tmp/envsubst /usr/bin/envsubst \
 	&& cd / \
 	&& mv /tmp/mogrify /usr/bin \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-apc.ini \
@@ -148,9 +152,11 @@ RUN	mkdir -p /var/lib/php7/session /var/lib/php7/wsdlcache  \
 
 COPY files/*.ini /usr/local/etc/php/conf.d/
 COPY files/opcache*.blacklist /usr/local/etc/php.d/
-COPY files/www.conf /usr/local/etc/php-fpm.d/
+COPY files/www.conf /usr/local/etc/php-fpm.d/www.conf.template
 COPY files/php7-fpm.conf /usr/local/etc/php-fpm.conf
 COPY files/php.ini-production /usr/local/etc/php.conf
+COPY files/docker-entrypoint.sh /usr/local/bin
+RUN chown -R httpd:www /usr/local/etc
 
 ARG MICROSCANER_TOKEN
 RUN if [ x${MICROSCANER_TOKEN} != x ] ; then \
@@ -164,4 +170,5 @@ RUN if [ x${MICROSCANER_TOKEN} != x ] ; then \
     fi
 
 USER httpd
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["/usr/local/sbin/php-fpm", "--nodaemonize", "--fpm-config", "/usr/local/etc/php-fpm.conf"]
