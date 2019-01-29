@@ -134,7 +134,8 @@ RUN apk update \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
 	&& rm -rf /tmp/mozjpeg* /tmp/pear /usr/include /usr/lib/pkgconfig /usr/lib/*a /usr/share/doc /usr/share/man \
-	&& apk add pngquant optipng jpegoptim \
+	&& apk add pngquant optipng jpegoptim ssmtp \
+	&& chown httpd /etc/ssmtp /etc/ssmtp/ssmtp.conf \
 	&& mv /tmp/libturbojpeg.so.0.1.0 /tmp/libjpeg.so.8.1.2 /usr/lib \
 	&& mkdir -p /etc/php7.d/conf.d /etc/php7-fpm.d \
 	&& cp /usr/local/etc/php/conf.d/* /etc/php7.d/conf.d/ \
@@ -158,13 +159,13 @@ COPY files/php.ini-production /usr/local/etc/php.conf
 COPY files/docker-entrypoint.sh /usr/local/bin
 RUN chown -R httpd:www /usr/local/etc
 
-ARG MICROSCANER_TOKEN
-RUN if [ x${MICROSCANER_TOKEN} != x ] ; then \
+ARG MICROSCANNER_TOKEN
+RUN if [ x${MICROSCANNER_TOKEN} != x ] ; then \
 	apk add --no-cache --virtual .ca ca-certificates \
 	&& update-ca-certificates\
 	&& wget --no-check-certificate https://get.aquasec.com/microscanner \
 	&& chmod +x microscanner \
-	&& ./microscanner ${MICROSCANER_TOKEN} || exit 1\
+	&& ./microscanner ${MICROSCANNER_TOKEN} || exit 1\
 	&& rm ./microscanner \
 	&& apk del --purge --virtual .ca ;\
     fi
