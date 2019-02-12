@@ -5,7 +5,7 @@ FROM php:7.3.2-fpm-alpine3.9
 MAINTAINER kusanagi@prime-strategy.co.jp
 
 # Environment variable
-ARG APCU_VERSION=5.1.13
+ARG APCU_VERSION=5.1.14
 ARG APCU_BC_VERSION=1.0.4
 ARG MOZJPEG_VERSION=3.3.1
 
