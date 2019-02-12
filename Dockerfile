@@ -1,7 +1,7 @@
 #//----------------------------------------------------------------------------
 #// PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
 #//----------------------------------------------------------------------------
-FROM php:7.3.1-fpm-alpine3.8
+FROM php:7.3.2-fpm-alpine3.9
 MAINTAINER kusanagi@prime-strategy.co.jp
 
 # Environment variable
@@ -91,7 +91,6 @@ RUN apk update \
 		pgsql \
 		opcache \
 		gd \
-		intl \
 		calendar \
 		imap \
 		ldap \
