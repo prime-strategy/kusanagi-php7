@@ -85,7 +85,6 @@ RUN apk update \
 	&& docker-php-ext-configure gd --with-jpeg-dir=/usr/include \
 		--with-xpm-dir=/usr/include --with-webp-dir=/usr/include \
 		--with-png-dir=/usr/include --with-freetype-dir=/usr/include/ \
-		--enable-gd-jis-conv \
 	&& docker-php-ext-install \
 		mysqli \
 		pgsql \
