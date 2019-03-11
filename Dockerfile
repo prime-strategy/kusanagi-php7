@@ -1,12 +1,12 @@
 #//----------------------------------------------------------------------------
 #// PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
 #//----------------------------------------------------------------------------
-FROM php:7.3.2-fpm-alpine3.9
+FROM php:7.3.3-fpm-alpine3.9
 MAINTAINER kusanagi@prime-strategy.co.jp
 
 # Environment variable
-ARG APCU_VERSION=5.1.14
-ARG APCU_BC_VERSION=1.0.4
+ARG APCU_VERSION=5.1.17
+ARG APCU_BC_VERSION=1.0.5
 ARG MOZJPEG_VERSION=3.3.1
 
 # add user
