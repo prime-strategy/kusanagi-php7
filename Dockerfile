@@ -147,6 +147,12 @@ RUN	mkdir -p /var/lib/php7/session /var/lib/php7/wsdlcache  \
 	&& chown httpd:www /var/lib/php7/session /var/lib/php7/wsdlcache \
 	&& echo mysqli.default_socket=/var/run/mysqld/mysqld.sock >> /usr/local/etc/php/conf.d/docker-php-ext-mysqli.ini \
 	&& echo pdo_mysql.default_socket = /var/run/mysqld/mysqld.sock >> /usr/local/etc/php/conf.d/docker-php-ext-pdo_mysql.ini \
+	&& cd /tmp \
+	&& curl -LO https://composer.github.io/installer.sha384sum \
+	&& curl -LO https://getcomposer.org/installer \
+	&& sha3sum installer.sha384sum \
+	&& php installer --filename=composer --install-dir=/usr/local/bin \
+	&& rm installer \
 	&& :
 
 COPY files/*.ini /usr/local/etc/php/conf.d/
