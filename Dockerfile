@@ -1,7 +1,7 @@
 #//----------------------------------------------------------------------------
 #// PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
 #//----------------------------------------------------------------------------
-FROM php:7.3.3-fpm-alpine3.9
+FROM php:7.3.4-fpm-alpine3.9
 MAINTAINER kusanagi@prime-strategy.co.jp
 
 # Environment variable
@@ -22,38 +22,10 @@ RUN : \
 	&& apk del --purge .user \
 	&& :
 
-RUN apk update \
-	&& apk add --update --no-cache --virtual .build-php \
-		$PHPIZE_DEPS \
-		build-base \
-		automake \
-		gettext \
-		libtool \
-		nasm \
-		mariadb \
-		mariadb-dev \
-		postgresql \
-		postgresql-dev \
-		gd-dev \
-		libpng-dev \
-		libwebp-dev \
-		libxpm-dev \
-		zlib-dev \
-		libzip-dev \
-		freetype-dev \
-		bzip2-dev \
-		libexif-dev \
-		xmlrpc-c-dev \
-		pcre-dev \
-		gettext-dev \
-		libxslt-dev \
-		pcre-dev \
-		openldap-dev \
-		imap-dev \
-		icu-dev \
-		curl \
-		imagemagick \
-		imagemagick-dev \
+COPY files/add_dev.sh /usr/local/bin
+COPY files/del_dev.sh /usr/local/bin
+
+RUN /usr/local/bin/add_dev.sh \
 	&& cd /tmp \
 \
 # mozjpeg
@@ -65,19 +37,6 @@ RUN apk update \
 	&& mkdir build && cd build \
 	&& sh ../configure --with-jpeg8 --prefix=/usr \
 	&& make -j$(getconf _NPROCESSORS_ONLN) install \
-	&& strip \
-		/usr/bin/wrjpgcom \
-		/usr/bin/rdjpgcom \
-		/usr/bin/cjpeg \
-		/usr/bin/jpegtran \
-		/usr/bin/djpeg \
-		/usr/bin/tjbench \
-		/usr/lib/libturbojpeg.so.0.1.0 \
-		/usr/lib/libjpeg.so.8.1.2 \
-	&& cp /usr/lib/libturbojpeg.so.0.1.0 \
-		/usr/lib/libjpeg.so.8.1.2 \
-		/tmp \
-	&& cp /usr/bin/mogrify /tmp \
 \
 # PHP7.3
 \
@@ -109,32 +68,18 @@ RUN apk update \
 		xmlrpc \
 		xsl \
 	&& pecl install imagick \
+	&& pecl install libsodium \
 	&& pecl install apcu-$APCU_VERSION \
 	&& pecl install apcu_bc-$APCU_BC_VERSION \
 	&& docker-php-ext-enable imagick apcu apc \
-	&& strip /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so \
-	&& apk add --no-cache --virtual .gettext gettext \
-	&& mv /usr/bin/envsubst /tmp/ \
-	&& runDeps="$( \
-		scanelf --needed --nobanner --format '%n#p' /usr/local/bin/php /tmp/mogriify /usr/local/lib/php/extensions/no-debug-non-zts-20180731/*.so /tmp/envsubst \
-			| tr ',' '\n' \
-			| sort -u \
-			| grep -v jpeg \
-			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
-	)" \
-	&& apk del --virtual .gettext \
-	&& apk add --no-cache --virtual .php7-rundeps $runDeps \
-	&& apk del .build-php \
-	&& mv /tmp/envsubst /usr/bin/envsubst \
+	&& /usr/local/bin/del_dev.sh \
 	&& cd / \
-	&& mv /tmp/mogrify /usr/bin \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-apc.ini \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
 	&& rm -rf /tmp/mozjpeg* /tmp/pear /usr/include /usr/lib/pkgconfig /usr/lib/*a /usr/share/doc /usr/share/man \
 	&& apk add pngquant optipng jpegoptim ssmtp \
 	&& chown httpd /etc/ssmtp /etc/ssmtp/ssmtp.conf \
-	&& mv /tmp/libturbojpeg.so.0.1.0 /tmp/libjpeg.so.8.1.2 /usr/lib \
 	&& mkdir -p /etc/php7.d/conf.d /etc/php7-fpm.d \
 	&& cp /usr/local/etc/php/conf.d/* /etc/php7.d/conf.d/ \
 	&& cp /usr/local/etc/php-fpm.d/* /etc/php7-fpm.d/ \
