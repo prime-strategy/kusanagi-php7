@@ -1,7 +1,7 @@
 #//----------------------------------------------------------------------------
 #// PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
 #//----------------------------------------------------------------------------
-FROM php:7.3.4-fpm-alpine3.9
+FROM php:7.3.5-fpm-alpine3.9
 MAINTAINER kusanagi@prime-strategy.co.jp
 
 # Environment variable
@@ -20,6 +20,7 @@ RUN : \
         && useradd -d /home/kusanagi -s /bin/nologin -g kusanagi -G www -u 1000 -m kusanagi \
         && chmod 755 /home/kusanagi \
 	&& apk del --purge .user \
+	&& chown -R httpd:www /var/www/html \
 	&& :
 
 COPY files/add_dev.sh /usr/local/bin
