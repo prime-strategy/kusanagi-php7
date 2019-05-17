@@ -700,7 +700,7 @@ default_charset = "UTF-8"
 
 ; UNIX: "/path1:/path2"
 ;include_path = ".:/php/includes"
-include_path = ".:/usr/local/php7/lib/php"
+include_path = ".:/usr/local/php/lib/php"
 ;
 ; Windows: "\path1;\path2"
 ;include_path = ".;c:\php\includes"
@@ -726,7 +726,7 @@ user_dir =
 ; extension_dir = "./"
 ; On windows:
 ; extension_dir = "ext"
-extension_dir = "/usr/local/php7/lib/php/extensions/no-debug-non-zts-20151012"
+extension_dir = "/usr/local/lib/php/extensions/no-debug-non-zts-20180731"
 
 ; Directory where the temporary files should be placed.
 ; Defaults to the system default (see sys_get_temp_dir)
