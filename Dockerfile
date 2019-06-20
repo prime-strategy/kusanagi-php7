@@ -1,7 +1,7 @@
 #//----------------------------------------------------------------------------
 #// PHP7 FastCGI Server ( for KUSANAGI Runs on Docker )
 #//----------------------------------------------------------------------------
-FROM php:7.3.5-fpm-alpine3.9
+FROM php:7.3.6-fpm-alpine3.9
 MAINTAINER kusanagi@prime-strategy.co.jp
 
 # Environment variable
@@ -80,6 +80,7 @@ RUN /usr/local/bin/add_dev.sh \
 	&& rm -f /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
 	&& rm -rf /tmp/mozjpeg* /tmp/pear /usr/include /usr/lib/pkgconfig /usr/lib/*a /usr/share/doc /usr/share/man \
 	&& apk add pngquant optipng jpegoptim ssmtp \
+	&& rm -rf /usr/lib/*.a \
 	&& chown httpd /etc/ssmtp /etc/ssmtp/ssmtp.conf \
 	&& mkdir -p /etc/php7.d/conf.d /etc/php7-fpm.d \
 	&& cp /usr/local/etc/php/conf.d/* /etc/php7.d/conf.d/ \
